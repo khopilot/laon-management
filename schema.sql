@@ -1,6 +1,15 @@
 -- Loan Management System Database Schema
 -- D1 Database Schema for Cloudflare Workers
 
+-- Branch Table
+CREATE TABLE IF NOT EXISTS branch (
+    branch_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    province TEXT,
+    phone TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Client KYC Table
 CREATE TABLE IF NOT EXISTS client_kyc (
     client_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -143,6 +152,11 @@ CREATE INDEX IF NOT EXISTS idx_user_accounts_username ON user_accounts (username
 CREATE INDEX IF NOT EXISTS idx_user_accounts_branch_id ON user_accounts (branch_id);
 
 -- Insert some sample data for testing
+INSERT OR IGNORE INTO branch (branch_id, name, province, phone) VALUES
+('PP01', 'Phnom Penh Main', 'Phnom Penh', '+855-12-345-678'),
+('SR01', 'Siem Reap Branch', 'Siem Reap', '+855-12-345-679'),
+('BB01', 'Battambang Branch', 'Battambang', '+855-12-345-680');
+
 INSERT OR IGNORE INTO loan_products (product_name, currency, interest_method, interest_rate_pa, fee_flat, min_term, max_term, grace_period_days) VALUES
 ('Standard Loan', 'USD', 'DECLINING', 18.0, 50.0, 6, 36, 7),
 ('Micro Loan', 'USD', 'FLAT', 15.0, 25.0, 3, 12, 0),
@@ -150,4 +164,4 @@ INSERT OR IGNORE INTO loan_products (product_name, currency, interest_method, in
 
 -- Insert a test user
 INSERT OR IGNORE INTO user_accounts (username, password_hash, full_name, email, role, branch_id) VALUES
-('staff_001', '$2a$10$hash_placeholder', 'Test Staff', 'staff@example.com', 'officer', 'BR001'); 
+('staff_001', '$2a$10$hash_placeholder', 'Test Staff', 'staff@example.com', 'officer', 'PP01'); 

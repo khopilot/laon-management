@@ -15,6 +15,7 @@ import { LoanApplicationForm } from './components/forms/LoanApplicationForm';
 import { useLoanApplications, useCreateLoanApplication, useUpdateLoanApplication, useDeleteLoanApplication } from './hooks/useLoanApplications';
 import type { LoanApplicationWithDetails, CreateLoanApplicationRequest } from './hooks/useLoanApplications';
 import './index.css';
+import { PaymentKanban } from './pages/PaymentKanban';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -283,15 +284,13 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="clients" element={<Clients />} />
-            <Route path="loan-applications" element={<LoanApplications />} />
-            <Route path="loans" element={<Loans />} />
-            <Route path="payments" element={<Payments />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="admin" element={<Admin />} />
-          </Route>
+          <Route path="/" element={<Layout><Dashboard /></Layout>} />
+          <Route path="/clients" element={<Layout><Clients /></Layout>} />
+          <Route path="/applications" element={<Layout><LoanApplications /></Layout>} />
+          <Route path="/payments" element={<Layout><PaymentKanban /></Layout>} />
+          <Route path="/loans" element={<Layout><Loans /></Layout>} />
+          <Route path="/reports" element={<Layout><Reports /></Layout>} />
+          <Route path="/admin" element={<Layout><Admin /></Layout>} />
         </Routes>
       </Router>
     </QueryClientProvider>

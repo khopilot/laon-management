@@ -1,13 +1,17 @@
-import { Outlet } from 'react-router-dom';
+import React from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '../../hooks/useAuth';
 
-export const Layout: React.FC = () => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <Outlet />;
+    return <>{children}</>;
   }
 
   return (
@@ -18,7 +22,7 @@ export const Layout: React.FC = () => {
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <Outlet />
+              {children}
             </div>
           </div>
         </main>

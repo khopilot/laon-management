@@ -618,4 +618,268 @@ app.delete("/api/loan-applications/:id", async (c) => {
   }
 });
 
+// ===== PAYMENT MANAGEMENT ENDPOINTS =====
+
+// GET /api/payment-schedules - Get payment schedules for Kanban board
+app.get("/api/payment-schedules", async (c) => {
+  try {
+    const branchId = c.req.query('branch_id');
+    const status = c.req.query('status'); // 'due', 'paid', 'late'
+    const dateFilter = c.req.query('date_filter'); // 'today', 'overdue', 'upcoming'
+    
+    let query = `
+      SELECT 
+        rs.schedule_id,
+        rs.loan_id,
+        rs.installment_no,
+        rs.due_date,
+        rs.principal_due,
+        rs.interest_due,
+        rs.fee_due,
+        rs.total_due,
+        rs.status,
+        
+        -- Client info
+        ck.client_id,
+        ck.first_name,
+        ck.khmer_last_name,
+        ck.latin_last_name,
+        ck.national_id,
+        ck.primary_phone,
+        
+        -- Loan info
+        la.loan_id,
+        la.branch_id,
+        la.principal_outstanding,
+        la.interest_accrued,
+        la.account_state,
+        la.installment_amount,
+        
+        -- Loan product info  
+        lp.product_name,
+        lp.grace_period_days,
+        
+        -- Calculate days overdue
+        CASE 
+          WHEN date(rs.due_date) < date('now') AND rs.status = 'due' 
+          THEN julianday('now') - julianday(rs.due_date)
+          ELSE 0
+        END as days_overdue
+        
+      FROM repayment_schedule rs
+      JOIN loan_account la ON rs.loan_id = la.loan_id
+      JOIN loan_application lapp ON la.app_id = lapp.app_id
+      JOIN client_kyc ck ON lapp.client_id = ck.client_id
+      JOIN loan_products lp ON lapp.product_id = lp.product_id
+      WHERE la.account_state = 'active'
+    `;
+    
+    const params = [];
+    
+    if (branchId) {
+      query += ` AND la.branch_id = ?`;
+      params.push(branchId);
+    }
+    
+    if (status) {
+      query += ` AND rs.status = ?`;
+      params.push(status);
+    }
+    
+    // Date filters for Kanban columns
+    if (dateFilter === 'today') {
+      query += ` AND date(rs.due_date) = date('now') AND rs.status = 'due'`;
+    } else if (dateFilter === 'overdue') {
+      query += ` AND date(rs.due_date) < date('now') AND rs.status = 'due'`;
+    } else if (dateFilter === 'upcoming') {
+      query += ` AND date(rs.due_date) > date('now') AND rs.status = 'due'`;
+    }
+    
+    query += ` ORDER BY rs.due_date ASC, ck.first_name ASC`;
+    
+    const { results } = await c.env.DB.prepare(query).bind(...params).all();
+    
+    // Add calculated fields
+    const enhancedResults = results.map((row: any) => ({
+      ...row,
+      client_name: [row.first_name, row.khmer_last_name, row.latin_last_name]
+        .filter(Boolean)
+        .join(' ') || 'Unknown Client',
+      grace_period_remaining: Math.max(0, row.grace_period_days - row.days_overdue),
+      is_in_grace_period: row.days_overdue > 0 && row.days_overdue <= row.grace_period_days,
+      payment_status: row.status === 'due' && row.days_overdue > row.grace_period_days ? 'late' : row.status
+    }));
+    
+    return c.json(enhancedResults);
+  } catch (error) {
+    console.error('Error fetching payment schedules:', error);
+    return c.json({ error: 'Failed to fetch payment schedules' }, 500);
+  }
+});
+
+// GET /api/loan-accounts - Get active loan accounts
+app.get("/api/loan-accounts", async (c) => {
+  try {
+    const branchId = c.req.query('branch_id');
+    
+    let query = `
+      SELECT 
+        la.*,
+        lapp.client_id,
+        lapp.product_id,
+        ck.first_name,
+        ck.khmer_last_name,
+        ck.latin_last_name,
+        ck.national_id,
+        lp.product_name,
+        lp.currency
+      FROM loan_account la
+      JOIN loan_application lapp ON la.app_id = lapp.app_id
+      JOIN client_kyc ck ON lapp.client_id = ck.client_id
+      JOIN loan_products lp ON lapp.product_id = lp.product_id
+      WHERE la.account_state = 'active'
+    `;
+    
+    const params = [];
+    
+    if (branchId) {
+      query += ` AND la.branch_id = ?`;
+      params.push(branchId);
+    }
+    
+    query += ` ORDER BY la.created_at DESC`;
+    
+    const { results } = await c.env.DB.prepare(query).bind(...params).all();
+    return c.json(results);
+  } catch (error) {
+    console.error('Error fetching loan accounts:', error);
+    return c.json({ error: 'Failed to fetch loan accounts' }, 500);
+  }
+});
+
+// POST /api/payments - Record a new payment
+app.post("/api/payments", async (c) => {
+  try {
+    const body = await c.req.json();
+    
+    // Validate required fields
+    const requiredFields = ['loan_id', 'amount_paid', 'principal_paid', 'interest_paid'];
+    for (const field of requiredFields) {
+      if (!body[field]) {
+        return c.json({ error: `${field} is required` }, 400);
+      }
+    }
+    
+    // Validate loan exists and is active
+    const { results: loanExists } = await c.env.DB.prepare(`
+      SELECT loan_id, principal_outstanding, interest_accrued, account_state 
+      FROM loan_account WHERE loan_id = ?
+    `).bind(body.loan_id).all();
+    
+    if (loanExists.length === 0) {
+      return c.json({ error: 'Loan not found' }, 404);
+    }
+    
+    const loan = loanExists[0] as any;
+    if (loan.account_state !== 'active') {
+      return c.json({ error: 'Cannot record payment for inactive loan' }, 400);
+    }
+    
+    // Validate payment amounts
+    if (body.amount_paid !== (body.principal_paid + body.interest_paid + (body.fee_paid || 0))) {
+      return c.json({ error: 'Total amount does not match sum of components' }, 400);
+    }
+    
+    // Record the payment transaction
+    const { meta } = await c.env.DB.prepare(`
+      INSERT INTO payment_transactions (
+        loan_id, payment_date, amount_paid, principal_paid, 
+        interest_paid, fee_paid, payment_method, reference_no
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      body.loan_id,
+      body.payment_date || new Date().toISOString(),
+      body.amount_paid,
+      body.principal_paid,
+      body.interest_paid,
+      body.fee_paid || 0,
+      body.payment_method || null,
+      body.reference_no || null
+    ).run();
+    
+    // Update loan account balances
+    const newPrincipalOutstanding = Math.max(0, loan.principal_outstanding - body.principal_paid);
+    const newInterestAccrued = Math.max(0, loan.interest_accrued - body.interest_paid);
+    
+    await c.env.DB.prepare(`
+      UPDATE loan_account 
+      SET 
+        principal_outstanding = ?,
+        interest_accrued = ?,
+        updated_at = ?
+      WHERE loan_id = ?
+    `).bind(
+      newPrincipalOutstanding,
+      newInterestAccrued,
+      new Date().toISOString(),
+      body.loan_id
+    ).run();
+    
+    // Update repayment schedule (mark installments as paid)
+    // Find the oldest unpaid installment(s) and mark them as paid
+    const { results: unpaidSchedules } = await c.env.DB.prepare(`
+      SELECT schedule_id, total_due 
+      FROM repayment_schedule 
+      WHERE loan_id = ? AND status = 'due'
+      ORDER BY installment_no ASC
+    `).bind(body.loan_id).all();
+    
+    let remainingPayment = body.amount_paid;
+    for (const schedule of unpaidSchedules as any[]) {
+      if (remainingPayment >= schedule.total_due) {
+        // Fully pay this installment
+        await c.env.DB.prepare(`
+          UPDATE repayment_schedule 
+          SET status = 'paid' 
+          WHERE schedule_id = ?
+        `).bind(schedule.schedule_id).run();
+        
+        remainingPayment -= schedule.total_due;
+      } else if (remainingPayment > 0) {
+        // Partial payment - keep as 'due' for now
+        remainingPayment = 0;
+        break;
+      }
+    }
+    
+    // Fetch the recorded payment
+    const { results } = await c.env.DB.prepare(`
+      SELECT * FROM payment_transactions WHERE transaction_id = ?
+    `).bind(meta.last_row_id).all();
+    
+    return c.json(results[0], 201);
+  } catch (error) {
+    console.error('Error recording payment:', error);
+    return c.json({ error: 'Failed to record payment' }, 500);
+  }
+});
+
+// GET /api/payments/:loanId - Get payment history for a loan
+app.get("/api/payments/:loanId", async (c) => {
+  try {
+    const loanId = c.req.param('loanId');
+    
+    const { results } = await c.env.DB.prepare(`
+      SELECT * FROM payment_transactions 
+      WHERE loan_id = ? 
+      ORDER BY payment_date DESC
+    `).bind(loanId).all();
+    
+    return c.json(results);
+  } catch (error) {
+    console.error('Error fetching payment history:', error);
+    return c.json({ error: 'Failed to fetch payment history' }, 500);
+  }
+});
+
 export default app;
