@@ -17,8 +17,7 @@ export const usePaymentSchedules = (filters?: {
       if (filters?.status) params.append('status', filters.status);
       if (filters?.date_filter) params.append('date_filter', filters.date_filter);
       
-      // Temporarily use demo data endpoint for production testing
-      const response = await fetch(`${API_BASE_URL}/api/demo-payment-schedules?${params}`);
+      const response = await fetch(`${API_BASE_URL}/api/payment-schedules?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch payment schedules');
       }

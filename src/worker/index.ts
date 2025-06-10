@@ -627,6 +627,183 @@ app.get("/api/payment-schedules", async (c) => {
     const status = c.req.query('status'); // 'due', 'paid', 'late'
     const dateFilter = c.req.query('date_filter'); // 'today', 'overdue', 'upcoming'
     
+    // Check if there are any active loan accounts
+    const { results: accountCount } = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count FROM loan_account WHERE account_state = 'active'
+    `).all();
+    
+    // If no active loans, return demo data as fallback
+    if ((accountCount[0] as any).count === 0) {
+      const demoData = [
+        {
+          schedule_id: 1,
+          loan_id: 1,
+          installment_no: 2,
+          due_date: '2025-01-10',
+          principal_due: 250.00,
+          interest_due: 37.50,
+          fee_due: 0.00,
+          total_due: 287.50,
+          status: 'due',
+          client_id: 1,
+          first_name: 'Demo',
+          khmer_last_name: 'Client',
+          latin_last_name: 'One',
+          national_id: 'DEMO001',
+          primary_phone: '+855-12-345678',
+          branch_id: 'PP01',
+          principal_outstanding: 2000.00,
+          interest_accrued: 150.00,
+          account_state: 'active',
+          installment_amount: 287.50,
+          product_name: 'Standard Loan',
+          grace_period_days: 7,
+          days_overdue: 5,
+          client_name: 'Demo Client One',
+          grace_period_remaining: 2,
+          is_in_grace_period: true,
+          payment_status: 'due'
+        },
+        {
+          schedule_id: 2,
+          loan_id: 1,
+          installment_no: 3,
+          due_date: '2025-01-12',
+          principal_due: 250.00,
+          interest_due: 37.50,
+          fee_due: 0.00,
+          total_due: 287.50,
+          status: 'due',
+          client_id: 1,
+          first_name: 'Demo',
+          khmer_last_name: 'Client',
+          latin_last_name: 'One',
+          national_id: 'DEMO001',
+          primary_phone: '+855-12-345678',
+          branch_id: 'PP01',
+          principal_outstanding: 2000.00,
+          interest_accrued: 150.00,
+          account_state: 'active',
+          installment_amount: 287.50,
+          product_name: 'Standard Loan',
+          grace_period_days: 7,
+          days_overdue: 3,
+          client_name: 'Demo Client One',
+          grace_period_remaining: 4,
+          is_in_grace_period: true,
+          payment_status: 'due'
+        },
+        {
+          schedule_id: 3,
+          loan_id: 1,
+          installment_no: 4,
+          due_date: new Date().toISOString().split('T')[0],
+          principal_due: 250.00,
+          interest_due: 37.50,
+          fee_due: 0.00,
+          total_due: 287.50,
+          status: 'due',
+          client_id: 1,
+          first_name: 'Demo',
+          khmer_last_name: 'Client',
+          latin_last_name: 'One',
+          national_id: 'DEMO001',
+          primary_phone: '+855-12-345678',
+          branch_id: 'PP01',
+          principal_outstanding: 2000.00,
+          interest_accrued: 150.00,
+          account_state: 'active',
+          installment_amount: 287.50,
+          product_name: 'Standard Loan',
+          grace_period_days: 7,
+          days_overdue: 0,
+          client_name: 'Demo Client One',
+          grace_period_remaining: 7,
+          is_in_grace_period: false,
+          payment_status: 'due'
+        },
+        {
+          schedule_id: 4,
+          loan_id: 2,
+          installment_no: 1,
+          due_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          principal_due: 150.00,
+          interest_due: 25.00,
+          fee_due: 0.00,
+          total_due: 175.00,
+          status: 'due',
+          client_id: 2,
+          first_name: 'Test',
+          khmer_last_name: 'Borrower',
+          latin_last_name: 'Two',
+          national_id: 'DEMO002',
+          primary_phone: '+855-12-987654',
+          branch_id: 'SR01',
+          principal_outstanding: 1500.00,
+          interest_accrued: 75.00,
+          account_state: 'active',
+          installment_amount: 175.00,
+          product_name: 'Micro Loan',
+          grace_period_days: 5,
+          days_overdue: 0,
+          client_name: 'Test Borrower Two',
+          grace_period_remaining: 5,
+          is_in_grace_period: false,
+          payment_status: 'due'
+        },
+        {
+          schedule_id: 5,
+          loan_id: 3,
+          installment_no: 1,
+          due_date: '2025-02-15',
+          principal_due: 300.00,
+          interest_due: 45.00,
+          fee_due: 0.00,
+          total_due: 345.00,
+          status: 'due',
+          client_id: 3,
+          first_name: 'Future',
+          khmer_last_name: 'Payment',
+          latin_last_name: 'Client',
+          national_id: 'DEMO003',
+          primary_phone: '+855-12-111222',
+          branch_id: 'PP01',
+          principal_outstanding: 3000.00,
+          interest_accrued: 200.00,
+          account_state: 'active',
+          installment_amount: 345.00,
+          product_name: 'Business Loan',
+          grace_period_days: 10,
+          days_overdue: 0,
+          client_name: 'Future Payment Client',
+          grace_period_remaining: 10,
+          is_in_grace_period: false,
+          payment_status: 'due'
+        }
+      ];
+      
+      // Apply filters to demo data
+      let filteredData = demoData;
+      
+      if (branchId) {
+        filteredData = filteredData.filter(item => item.branch_id === branchId);
+      }
+      
+      if (dateFilter === 'today') {
+        const today = new Date().toISOString().split('T')[0];
+        filteredData = filteredData.filter(item => item.due_date === today);
+      } else if (dateFilter === 'overdue') {
+        const today = new Date().toISOString().split('T')[0];
+        filteredData = filteredData.filter(item => item.due_date < today);
+      } else if (dateFilter === 'upcoming') {
+        const today = new Date().toISOString().split('T')[0];
+        filteredData = filteredData.filter(item => item.due_date > today);
+      }
+      
+      return c.json(filteredData);
+    }
+    
+    // Use real data from database
     let query = `
       SELECT 
         rs.schedule_id,
@@ -883,6 +1060,102 @@ app.get("/api/payments/:loanId", async (c) => {
 });
 
 // GET /api/demo-payment-schedules - Get demo payment schedules for testing
+// POST /api/setup-demo-loans - Create demo loan accounts and payment schedules
+app.post("/api/setup-demo-loans", async (c) => {
+  try {
+    // Check if we already have active loan accounts
+    const { results: existingLoans } = await c.env.DB.prepare(`
+      SELECT COUNT(*) as count FROM loan_account WHERE account_state = 'active'
+    `).all();
+    
+    if ((existingLoans[0] as any).count > 0) {
+      return c.json({ message: 'Demo loans already exist', count: (existingLoans[0] as any).count });
+    }
+    
+    // Get an approved loan application
+    const { results: approvedApps } = await c.env.DB.prepare(`
+      SELECT app_id, client_id, product_id, requested_amount, requested_term_months 
+      FROM loan_application 
+      WHERE application_status = 'approved' 
+      LIMIT 1
+    `).all();
+    
+    if (approvedApps.length === 0) {
+      return c.json({ error: 'No approved loan applications found. Please create and approve a loan application first.' }, 400);
+    }
+    
+    const app = approvedApps[0] as any;
+    
+    // Create a loan account
+    const { meta: loanMeta } = await c.env.DB.prepare(`
+      INSERT INTO loan_account (
+        app_id, branch_id, principal_amount, principal_outstanding,
+        interest_rate, installment_amount, total_installments,
+        account_state, disbursement_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      app.app_id,
+      'PP01',
+      app.requested_amount,
+      app.requested_amount,
+      15.0, // 15% interest rate
+      Math.round(app.requested_amount / app.requested_term_months),
+      app.requested_term_months,
+      'active',
+      new Date().toISOString()
+    ).run();
+    
+    const loanId = loanMeta.lastRowId;
+    
+    // Create payment schedules
+    const installmentAmount = Math.round(app.requested_amount / app.requested_term_months);
+    const monthlyInterest = (app.requested_amount * 0.15) / 12; // Monthly interest
+    const monthlyPrincipal = installmentAmount - monthlyInterest;
+    
+    // Insert payment schedules for the next 3 months
+    for (let i = 1; i <= 3; i++) {
+      const dueDate = new Date();
+      dueDate.setMonth(dueDate.getMonth() + i);
+      
+      let status = 'due';
+      if (i === 1) {
+        // First payment is overdue
+        dueDate.setDate(dueDate.getDate() - 5);
+      } else if (i === 2) {
+        // Second payment is due today
+        dueDate.setTime(Date.now());
+      }
+      // Third payment is upcoming
+      
+      await c.env.DB.prepare(`
+        INSERT INTO repayment_schedule (
+          loan_id, installment_no, due_date, principal_due,
+          interest_due, fee_due, total_due, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        loanId,
+        i,
+        dueDate.toISOString().split('T')[0],
+        monthlyPrincipal,
+        monthlyInterest,
+        0,
+        installmentAmount,
+        status
+      ).run();
+    }
+    
+    return c.json({ 
+      message: 'Demo loan and payment schedules created successfully',
+      loan_id: loanId,
+      schedules_created: 3
+    });
+    
+  } catch (error) {
+    console.error('Error setting up demo loans:', error);
+    return c.json({ error: 'Failed to setup demo loans' }, 500);
+  }
+});
+
 app.get("/api/demo-payment-schedules", async (c) => {
   try {
     const branchId = c.req.query('branch_id');

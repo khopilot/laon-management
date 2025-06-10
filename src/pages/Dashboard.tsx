@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   UsersIcon, 
@@ -6,7 +6,8 @@ import {
   DocumentCheckIcon, 
   ChartBarIcon,
   ClockIcon,
-  BanknotesIcon
+  BanknotesIcon,
+  CogIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
 import { useClients } from '../hooks/useClients';
@@ -19,8 +20,42 @@ export const Dashboard: React.FC = () => {
   const { data: clients, isLoading: isLoadingClients } = useClients();
   const { data: loanApplications, isLoading: isLoadingApplications } = useLoanApplications();
   const { data: loanProducts, isLoading: isLoadingProducts } = useLoanProducts();
+  const [isSettingUpDemo, setIsSettingUpDemo] = useState(false);
+  const [demoMessage, setDemoMessage] = useState('');
 
   const isLoading = isLoadingClients || isLoadingApplications || isLoadingProducts;
+
+  // Setup demo loans function
+  const setupDemoLoans = async () => {
+    setIsSettingUpDemo(true);
+    setDemoMessage('');
+    
+    try {
+      const response = await fetch('http://localhost:8787/api/setup-demo-loans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        setDemoMessage(`✅ ${result.message}`);
+        // Refresh the page after a short delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setDemoMessage(`❌ ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error setting up demo loans:', error);
+      setDemoMessage('❌ Failed to setup demo loans');
+    } finally {
+      setIsSettingUpDemo(false);
+    }
+  };
 
   // Calculate dashboard metrics
   const totalClients = clients?.length || 0;
@@ -198,7 +233,17 @@ export const Dashboard: React.FC = () => {
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        {/* Demo setup message */}
+        {demoMessage && (
+          <div className={`mb-4 p-3 rounded-lg ${
+            demoMessage.includes('✅') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+          }`}>
+            {demoMessage}
+          </div>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Link 
             to="/clients" 
             className="group flex items-center p-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg hover:from-blue-100 hover:to-blue-200 transition-all duration-200 border border-blue-200"
@@ -242,6 +287,20 @@ export const Dashboard: React.FC = () => {
               <p className="text-sm text-gray-600">Analytics & insights</p>
             </div>
           </Link>
+          
+          <button 
+            onClick={setupDemoLoans}
+            disabled={isSettingUpDemo}
+            className="group flex items-center p-6 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg hover:from-indigo-100 hover:to-indigo-200 transition-all duration-200 border border-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <CogIcon className={`h-10 w-10 text-indigo-600 group-hover:scale-110 transition-transform ${isSettingUpDemo ? 'animate-spin' : ''}`} />
+            <div className="ml-4">
+              <h3 className="font-semibold text-gray-900">
+                {isSettingUpDemo ? 'Setting up...' : 'Setup Demo Data'}
+              </h3>
+              <p className="text-sm text-gray-600">Create test loans & payments</p>
+            </div>
+          </button>
         </div>
       </div>
 
