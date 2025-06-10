@@ -882,4 +882,178 @@ app.get("/api/payments/:loanId", async (c) => {
   }
 });
 
+// GET /api/demo-payment-schedules - Get demo payment schedules for testing
+app.get("/api/demo-payment-schedules", async (c) => {
+  try {
+    const branchId = c.req.query('branch_id');
+    const dateFilter = c.req.query('date_filter');
+    
+    const demoData = [
+      {
+        schedule_id: 1,
+        loan_id: 1,
+        installment_no: 2,
+        due_date: '2025-01-10',
+        principal_due: 250.00,
+        interest_due: 37.50,
+        total_due: 287.50,
+        status: 'due',
+        client_id: 1,
+        first_name: 'Demo',
+        khmer_last_name: 'Client',
+        latin_last_name: 'One',
+        national_id: 'DEMO001',
+        primary_phone: '+855-12-345678',
+        branch_id: 'PP01',
+        principal_outstanding: 2000.00,
+        interest_accrued: 150.00,
+        account_state: 'active',
+        installment_amount: 287.50,
+        product_name: 'Standard Loan',
+        grace_period_days: 7,
+        days_overdue: 5,
+        client_name: 'Demo Client One',
+        grace_period_remaining: 2,
+        is_in_grace_period: true,
+        payment_status: 'due'
+      },
+      {
+        schedule_id: 2,
+        loan_id: 1,
+        installment_no: 3,
+        due_date: '2025-01-12',
+        principal_due: 250.00,
+        interest_due: 37.50,
+        total_due: 287.50,
+        status: 'due',
+        client_id: 1,
+        first_name: 'Demo',
+        khmer_last_name: 'Client',
+        latin_last_name: 'One',
+        national_id: 'DEMO001',
+        primary_phone: '+855-12-345678',
+        branch_id: 'PP01',
+        principal_outstanding: 2000.00,
+        interest_accrued: 150.00,
+        account_state: 'active',
+        installment_amount: 287.50,
+        product_name: 'Standard Loan',
+        grace_period_days: 7,
+        days_overdue: 3,
+        client_name: 'Demo Client One',
+        grace_period_remaining: 4,
+        is_in_grace_period: true,
+        payment_status: 'due'
+      },
+      {
+        schedule_id: 3,
+        loan_id: 1,
+        installment_no: 4,
+        due_date: new Date().toISOString().split('T')[0],
+        principal_due: 250.00,
+        interest_due: 37.50,
+        total_due: 287.50,
+        status: 'due',
+        client_id: 1,
+        first_name: 'Demo',
+        khmer_last_name: 'Client',
+        latin_last_name: 'One',
+        national_id: 'DEMO001',
+        primary_phone: '+855-12-345678',
+        branch_id: 'PP01',
+        principal_outstanding: 2000.00,
+        interest_accrued: 150.00,
+        account_state: 'active',
+        installment_amount: 287.50,
+        product_name: 'Standard Loan',
+        grace_period_days: 7,
+        days_overdue: 0,
+        client_name: 'Demo Client One',
+        grace_period_remaining: 7,
+        is_in_grace_period: false,
+        payment_status: 'due'
+      },
+      {
+        schedule_id: 4,
+        loan_id: 2,
+        installment_no: 1,
+        due_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+        principal_due: 150.00,
+        interest_due: 25.00,
+        total_due: 175.00,
+        status: 'due',
+        client_id: 2,
+        first_name: 'Test',
+        khmer_last_name: 'Borrower',
+        latin_last_name: 'Two',
+        national_id: 'DEMO002',
+        primary_phone: '+855-12-987654',
+        branch_id: 'SR01',
+        principal_outstanding: 1500.00,
+        interest_accrued: 75.00,
+        account_state: 'active',
+        installment_amount: 175.00,
+        product_name: 'Micro Loan',
+        grace_period_days: 5,
+        days_overdue: 0,
+        client_name: 'Test Borrower Two',
+        grace_period_remaining: 5,
+        is_in_grace_period: false,
+        payment_status: 'due'
+      },
+      {
+        schedule_id: 5,
+        loan_id: 3,
+        installment_no: 1,
+        due_date: '2025-02-15',
+        principal_due: 300.00,
+        interest_due: 45.00,
+        total_due: 345.00,
+        status: 'due',
+        client_id: 3,
+        first_name: 'Future',
+        khmer_last_name: 'Payment',
+        latin_last_name: 'Client',
+        national_id: 'DEMO003',
+        primary_phone: '+855-12-111222',
+        branch_id: 'PP01',
+        principal_outstanding: 3000.00,
+        interest_accrued: 200.00,
+        account_state: 'active',
+        installment_amount: 345.00,
+        product_name: 'Business Loan',
+        grace_period_days: 10,
+        days_overdue: 0,
+        client_name: 'Future Payment Client',
+        grace_period_remaining: 10,
+        is_in_grace_period: false,
+        payment_status: 'due'
+      }
+    ];
+    
+    // Apply filters to demo data
+    let filteredData = demoData;
+    
+    if (branchId) {
+      filteredData = filteredData.filter(item => item.branch_id === branchId);
+    }
+    
+    if (dateFilter === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      filteredData = filteredData.filter(item => item.due_date === today);
+    } else if (dateFilter === 'overdue') {
+      const today = new Date().toISOString().split('T')[0];
+      filteredData = filteredData.filter(item => item.due_date < today);
+    } else if (dateFilter === 'upcoming') {
+      const today = new Date().toISOString().split('T')[0];
+      filteredData = filteredData.filter(item => item.due_date > today);
+    }
+    
+    return c.json(filteredData);
+  } catch (error) {
+    console.error('Error fetching demo payment schedules:', error);
+    return c.json({ error: 'Failed to fetch demo payment schedules' }, 500);
+  }
+});
+
 export default app;
