@@ -211,7 +211,7 @@ export const Dashboard: React.FC = () => {
           </Link>
           
           <Link 
-            to="/loan-applications" 
+            to="/applications" 
             className="group flex items-center p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-lg hover:from-green-100 hover:to-green-200 transition-all duration-200 border border-green-200"
           >
             <DocumentCheckIcon className="h-10 w-10 text-green-600 group-hover:scale-110 transition-transform" />

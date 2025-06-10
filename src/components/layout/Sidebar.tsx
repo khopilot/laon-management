@@ -23,9 +23,8 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Clients', href: '/clients', icon: UsersIcon },
-  { name: 'Applications', href: '/applications', icon: DocumentCheckIcon },
+  { name: 'Loan Applications', href: '/applications', icon: DocumentCheckIcon },
   { name: 'Payments', href: '/payments', icon: BanknotesIcon },
-  { name: 'Loan Applications', href: '/loan-applications', icon: DocumentCheckIcon },
   { name: 'Active Loans', href: '/loans', icon: BanknotesIcon },
   { name: 'Reports', href: '/reports', icon: ChartBarIcon },
   { name: 'Administration', href: '/admin', icon: CogIcon, adminOnly: true },
