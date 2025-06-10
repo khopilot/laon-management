@@ -201,7 +201,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
               variant="ghost"
               size="sm"
               className="ml-auto h-6 text-xs"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 window.open(`tel:${payment.primary_phone}`);
               }}
@@ -223,7 +223,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
         <div className="flex space-x-2 pt-2">
           {payment.payment_status !== 'paid' && (
             <Button
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                 e.stopPropagation();
                 onRecordPayment(payment);
               }}
@@ -235,7 +235,7 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
             </Button>
           )}
           <Button
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               onViewDetails(payment);
             }}
