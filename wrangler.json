@@ -10,5 +10,12 @@
   "upload_source_maps": true,
   "assets": {
     "not_found_handling": "single-page-application"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "loan-management-db",
+      "database_id": "aeef85b0-64e6-45a2-a848-dfbabb123bed"
+    }
+  ]
 }
