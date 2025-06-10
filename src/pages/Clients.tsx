@@ -12,27 +12,7 @@ import type { CreateClientRequest } from '../hooks/useClientMutations';
 type ViewMode = 'list' | 'create' | 'edit';
 
 // Updated to match the simplified form structure
-interface ClientFormData {
-  branch_id: string;
-  national_id: string;
-  first_name: string;
-  khmer_last_name?: string;
-  latin_last_name?: string;
-  sex?: string;
-  date_of_birth?: string;
-  primary_phone?: string;
-  alt_phone?: string;
-  email?: string;
-  village_commune_district_province?: string;
-  socioEconomic?: {
-    occupation?: string;
-    employer_name?: string;
-    monthly_income_usd?: number;
-    household_size?: number;
-    education_level?: string;
-    cbc_score?: number;
-  };
-}
+
 
 export const Clients: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -45,16 +25,22 @@ export const Clients: React.FC = () => {
   const deleteClientMutation = useDeleteClient();
 
   // Handle form submission
-  const handleFormSubmit = async (data: ClientFormData) => {
+  const handleFormSubmit = async (data: any) => {
     console.log('Submitting form data:', data); // Debug log
     
     try {
+      // Map sex values from form to database format
+      const mappedData = {
+        ...data,
+        sex: data.sex === 'Male' ? 'M' : data.sex === 'Female' ? 'F' : undefined
+      };
+      
       if (viewMode === 'create') {
         // Data is already in the right format for CreateClientRequest
-        await createClientMutation.mutateAsync(data as CreateClientRequest);
+        await createClientMutation.mutateAsync(mappedData as CreateClientRequest);
       } else if (viewMode === 'edit' && selectedClient) {
         // For editing, separate KYC and socio-economic data
-        const { socioEconomic, ...kycData } = data;
+        const { socioEconomic, ...kycData } = mappedData;
         
         await updateClientMutation.mutateAsync({
           clientId: selectedClient.client_id.toString(),
@@ -185,7 +171,7 @@ export const Clients: React.FC = () => {
       first_name: selectedClient.first_name || '',
       khmer_last_name: selectedClient.khmer_last_name || '',
       latin_last_name: selectedClient.latin_last_name || '',
-      sex: (selectedClient.sex as 'Male' | 'Female' | 'Other') || undefined,
+      sex: (selectedClient.sex === 'M' ? 'Male' : selectedClient.sex === 'F' ? 'Female' : undefined) as 'Male' | 'Female' | 'Other' | undefined,
       date_of_birth: selectedClient.date_of_birth || '',
       primary_phone: selectedClient.primary_phone || '',
       alt_phone: selectedClient.alt_phone || '',

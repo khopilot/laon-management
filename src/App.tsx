@@ -1,6 +1,6 @@
 // src/App.tsx
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -128,7 +128,7 @@ const LoanApplications = () => {
       key: 'application_status' as keyof LoanApplicationWithDetails,
       header: 'Status',
       render: (value: any) => {
-        const statusColors = {
+        const statusColors: Record<string, string> = {
           draft: 'bg-gray-100 text-gray-800',
           pending: 'bg-yellow-100 text-yellow-800',
           approved: 'bg-green-100 text-green-800',

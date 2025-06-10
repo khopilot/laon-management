@@ -299,7 +299,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({
         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={onCancel}
             disabled={isLoading}
           >

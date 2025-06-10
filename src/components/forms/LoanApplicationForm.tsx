@@ -16,8 +16,8 @@ const loanApplicationSchema = z.object({
   requested_amount: z.number().min(1, 'Loan amount must be greater than 0'),
   purpose_code: z.string().optional(),
   requested_term_months: z.number().min(1, 'Loan term must be at least 1 month'),
-  repayment_frequency: z.enum(['daily', 'weekly', 'monthly']).default('monthly'),
-  application_status: z.enum(['draft', 'pending', 'approved', 'rejected']).default('draft'),
+  repayment_frequency: z.enum(['daily', 'weekly', 'monthly']),
+  application_status: z.enum(['draft', 'pending', 'approved', 'rejected']),
 });
 
 type LoanApplicationFormData = z.infer<typeof loanApplicationSchema>;
@@ -64,9 +64,7 @@ export const LoanApplicationForm: React.FC<LoanApplicationFormProps> = ({
     register,
     handleSubmit,
     formState: { errors },
-    watch,
-    setValue,
-    reset
+    watch
   } = useForm<LoanApplicationFormData>({
     resolver: zodResolver(loanApplicationSchema),
     defaultValues: {

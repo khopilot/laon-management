@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../services/api';
-import type { LoanApplication, LoanProduct, ClientKYC } from '../types/database';
+import type { LoanApplication, LoanProduct } from '../types/database';
 
 // Extended loan application type with client and product info
 export interface LoanApplicationWithDetails extends LoanApplication {

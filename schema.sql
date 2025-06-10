@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS client_kyc (
     first_name TEXT,
     khmer_last_name TEXT,
     latin_last_name TEXT,
-    sex TEXT CHECK (sex IN ('Male', 'Female', 'Other')),
+    sex TEXT CHECK (sex IN ('M', 'F')),
     date_of_birth TEXT,
     primary_phone TEXT,
     alt_phone TEXT,
