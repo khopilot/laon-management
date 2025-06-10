@@ -8,9 +8,7 @@ import {
   CogIcon,
   BuildingOfficeIcon,
   UserCircleIcon,
-  ChevronUpIcon,
-  BellIcon,
-  LogOutIcon
+  ChevronUpIcon
 } from "@heroicons/react/24/outline"
 
 import {
@@ -18,7 +16,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
@@ -85,7 +82,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const location = useLocation()
 
   const filteredNavMain = data.navMain

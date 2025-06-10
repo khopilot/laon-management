@@ -4,8 +4,14 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ClockIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  CurrencyDollarIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { Progress } from '../components/ui/progress';
 import { usePaymentSchedules } from '../hooks/usePayments';
 import { PaymentCard } from '../components/payments/PaymentCard';
 import { PaymentSchedule } from '../types/payments';
@@ -47,6 +53,17 @@ export const PaymentKanban: React.FC = () => {
   };
 
   const { dueToday, overdue, gracePeriod, paid, upcoming } = organizePayments();
+
+  // Calculate financial metrics
+  const overdueAmount = overdue.reduce((sum, p) => sum + p.total_due, 0);
+  const dueTodayAmount = dueToday.reduce((sum, p) => sum + p.total_due, 0);
+  const paidTodayAmount = paid.filter(p => {
+    const today = new Date().toISOString().split('T')[0];
+    return p.payment_date && p.payment_date.split('T')[0] === today;
+  }).reduce((sum, p) => sum + p.total_due, 0);
+  
+  const totalPortfolio = allPayments.reduce((sum, p) => sum + p.total_due, 0);
+  const collectionRate = totalPortfolio > 0 ? (paid.length / allPayments.length) * 100 : 0;
 
   const handleRecordPayment = (payment: PaymentSchedule) => {
     setSelectedPayment(payment);
@@ -118,67 +135,105 @@ export const PaymentKanban: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Payment Management</h1>
-          <p className="text-gray-600">Track and record loan payments</p>
-        </div>
-        
-        {/* Branch Filter */}
-        <div className="flex items-center space-x-4">
-          <select
-            value={selectedBranch}
-            onChange={(e) => setSelectedBranch(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Branches</option>
-            <option value="PP01">Phnom Penh Main</option>
-            <option value="SR01">Siem Reap Branch</option>
-          </select>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl">Payment Management</CardTitle>
+              <CardDescription>Track and record loan payments across all branches</CardDescription>
+            </div>
+            
+            {/* Branch Filter */}
+            <div className="flex items-center space-x-4">
+              <select
+                value={selectedBranch}
+                onChange={(e) => setSelectedBranch(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Branches</option>
+                <option value="PP01">Phnom Penh Main</option>
+                <option value="SR01">Siem Reap Branch</option>
+              </select>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-          <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-8 w-8 text-red-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-red-800">Overdue</p>
-              <p className="text-2xl font-bold text-red-900">{overdue.length}</p>
+      {/* Enhanced Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="border-l-4 border-l-red-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Overdue Payments</CardTitle>
+            <ExclamationTriangleIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{overdue.length}</div>
+            <div className="text-sm text-red-700 font-medium">
+              ${overdueAmount.toLocaleString()}
             </div>
-          </div>
-        </div>
+            <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
+              <Badge variant="destructive" className="text-xs">
+                High Priority
+              </Badge>
+            </div>
+            <Progress value={(overdue.length / Math.max(allPayments.length, 1)) * 100} className="mt-2 h-1" />
+          </CardContent>
+        </Card>
         
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <div className="flex items-center">
-            <CalendarIcon className="h-8 w-8 text-blue-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-blue-800">Due Today</p>
-              <p className="text-2xl font-bold text-blue-900">{dueToday.length}</p>
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Due Today</CardTitle>
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{dueToday.length}</div>
+            <div className="text-sm text-blue-700 font-medium">
+              ${dueTodayAmount.toLocaleString()}
             </div>
-          </div>
-        </div>
+            <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
+              <UserGroupIcon className="h-3 w-3" />
+              <span>Action needed today</span>
+            </div>
+            <Progress value={(dueToday.length / Math.max(allPayments.length, 1)) * 100} className="mt-2 h-1" />
+          </CardContent>
+        </Card>
         
-        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-          <div className="flex items-center">
-            <ClockIcon className="h-8 w-8 text-yellow-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-yellow-800">Grace Period</p>
-              <p className="text-2xl font-bold text-yellow-900">{gracePeriod.length}</p>
+        <Card className="border-l-4 border-l-yellow-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Grace Period</CardTitle>
+            <ClockIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{gracePeriod.length}</div>
+            <div className="text-sm text-yellow-700 font-medium">
+              ${gracePeriod.reduce((sum, p) => sum + p.total_due, 0).toLocaleString()}
             </div>
-          </div>
-        </div>
+            <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
+              <Badge variant="secondary" className="text-xs">
+                Monitor Closely
+              </Badge>
+            </div>
+            <Progress value={(gracePeriod.length / Math.max(allPayments.length, 1)) * 100} className="mt-2 h-1" />
+          </CardContent>
+        </Card>
         
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <div className="flex items-center">
-            <CheckCircleIcon className="h-8 w-8 text-green-600" />
-            <div className="ml-3">
-              <p className="text-sm font-medium text-green-800">Paid Today</p>
-              <p className="text-2xl font-bold text-green-900">{paid.length}</p>
+        <Card className="border-l-4 border-l-green-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Collection Rate</CardTitle>
+            <CheckCircleIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{collectionRate.toFixed(1)}%</div>
+            <div className="text-sm text-green-700 font-medium">
+              ${paidTodayAmount.toLocaleString()} today
             </div>
-          </div>
-        </div>
+            <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
+              <CurrencyDollarIcon className="h-3 w-3" />
+              <span>{paid.length} payments collected</span>
+            </div>
+            <Progress value={collectionRate} className="mt-2 h-1" />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Kanban Board */}

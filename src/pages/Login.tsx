@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { BuildingOfficeIcon, LockClosedIcon, UserIcon } from '@heroicons/react/24/outline';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { useAuth } from '../hooks/useAuth';
 
 export const Login: React.FC = () => {
@@ -64,29 +64,25 @@ export const Login: React.FC = () => {
         {/* Login Form */}
         <div className="bg-white rounded-xl shadow-2xl p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <Input
-                label="Staff ID"
-                name="staff_id"
-                type="text"
-                required
-                value={formData.staff_id}
-                onChange={handleChange}
-                placeholder="Enter your staff ID"
-              />
-            </div>
+            <Input
+              label="Staff ID"
+              name="staff_id"
+              type="text"
+              required
+              value={formData.staff_id}
+              onChange={handleChange}
+              placeholder="Enter your staff ID"
+            />
 
-            <div>
-              <Input
-                label="Password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-              />
-            </div>
+            <Input
+              label="Password"
+              name="password"
+              type="password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+            />
 
             {loginError && (
               <div className="bg-red-50 border border-red-200 rounded-md p-4">
@@ -98,9 +94,9 @@ export const Login: React.FC = () => {
 
             <Button
               type="submit"
-              variant="primary"
+              variant="default"
               className="w-full"
-              loading={isLoading}
+              disabled={isLoading}
             >
               <LockClosedIcon className="h-5 w-5 mr-2" />
               Sign In
@@ -118,7 +114,7 @@ export const Login: React.FC = () => {
                 variant="secondary"
                 size="sm"
                 onClick={() => handleDemoLogin('admin')}
-                loading={isLoading}
+                disabled={isLoading}
                 className="w-full"
               >
                 <UserIcon className="h-4 w-4 mr-2" />
@@ -129,7 +125,7 @@ export const Login: React.FC = () => {
                 variant="secondary"
                 size="sm"
                 onClick={() => handleDemoLogin('officer')}
-                loading={isLoading}
+                disabled={isLoading}
                 className="w-full"
               >
                 <UserIcon className="h-4 w-4 mr-2" />

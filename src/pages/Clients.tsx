@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/button';
 import { Table } from '../components/ui/Table';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ClientForm } from '../components/forms/ClientForm';
@@ -150,7 +150,7 @@ export const Clients: React.FC = () => {
             <PencilIcon className="h-4 w-4" />
           </Button>
           <Button
-            variant="error"
+            variant="destructive"
             size="sm"
             onClick={() => handleDeleteClient(item.client_id.toString())}
             className="p-1 h-8 w-8"

@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Header } from './Header';
 import { AppSidebar } from './AppSidebar';
 import { useAuth } from '../../hooks/useAuth';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -16,8 +15,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     if (!isAuthenticated) {
       login({
-        username: 'demo@loancare.com',
-        password: 'demo123'
+        staff_id: 'staff_001',
+        password: 'password123'
       }).catch(() => {
         // Ignore login errors in development
         console.log('Auto-login failed, but continuing...');

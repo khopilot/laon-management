@@ -8,7 +8,7 @@ import { Layout } from './components/layout/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Clients } from './pages/Clients';
 import { Login } from './pages/Login';
-import { Button } from './components/ui/Button';
+import { Button } from './components/ui/button';
 import { Table } from './components/ui/Table';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { LoanApplicationForm } from './components/forms/LoanApplicationForm';
@@ -165,7 +165,7 @@ const LoanApplications = () => {
             <PencilIcon className="h-4 w-4" />
           </Button>
           <Button
-            variant="error"
+            variant="destructive"
             size="sm"
             onClick={() => handleDeleteApplication(item.app_id.toString())}
             className="p-1 h-8 w-8"
@@ -199,7 +199,7 @@ const LoanApplications = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Loan Applications</h1>
         <Button
-          variant="primary"
+          variant="default"
           onClick={() => setViewMode('create')}
           className="flex items-center space-x-2"
         >
@@ -222,7 +222,7 @@ const LoanApplications = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Loan Applications</h3>
           <p className="text-gray-600 mb-4">Get started by creating your first loan application.</p>
           <Button
-            variant="primary"
+            variant="default"
             onClick={() => setViewMode('create')}
             className="flex items-center space-x-2 mx-auto"
           >
