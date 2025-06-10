@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   CalendarIcon, 
-  UserIcon, 
   PhoneIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,

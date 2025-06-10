@@ -5,7 +5,6 @@ import {
   UsersIcon,
   DocumentCheckIcon,
   BanknotesIcon,
-  CreditCardIcon,
   ChartBarIcon,
   CogIcon,
   BuildingOfficeIcon,

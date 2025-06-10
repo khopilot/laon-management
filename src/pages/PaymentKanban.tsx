@@ -226,13 +226,35 @@ export const PaymentKanban: React.FC = () => {
 
       {/* Payment Recording Modal */}
       {showPaymentModal && selectedPayment && (
-        <PaymentModal
-          payment={selectedPayment}
-          onClose={() => {
-            setShowPaymentModal(false);
-            setSelectedPayment(null);
-          }}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Record Payment</h3>
+            <p className="text-gray-600 mb-4">
+              Payment recording for {selectedPayment.client_name} - ${selectedPayment.total_due}
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setSelectedPayment(null);
+                }}
+                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // TODO: Implement payment recording logic
+                  setShowPaymentModal(false);
+                  setSelectedPayment(null);
+                }}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+              >
+                Record Payment
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
