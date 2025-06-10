@@ -8,8 +8,6 @@ import {
   ClockIcon,
   BanknotesIcon,
   CogIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ArrowRightIcon

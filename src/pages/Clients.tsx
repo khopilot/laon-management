@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Button } from '../components/ui/button';
-import { Table } from '../components/ui/Table';
+import { DataTable } from '../components/ui/DataTable';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ClientForm } from '../components/forms/ClientForm';
 import { useClients } from '../hooks/useClients';
@@ -237,7 +237,7 @@ export const Clients: React.FC = () => {
         <>
           {clients && clients.length > 0 ? (
             <div className="bg-white rounded-lg shadow">
-              <Table 
+              <DataTable 
                 data={clients} 
                 columns={columns}
               />

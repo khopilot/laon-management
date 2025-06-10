@@ -9,7 +9,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Clients } from './pages/Clients';
 import { Login } from './pages/Login';
 import { Button } from './components/ui/button';
-import { Table } from './components/ui/Table';
+import { DataTable } from './components/ui/DataTable';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { LoanApplicationForm } from './components/forms/LoanApplicationForm';
 import { useLoanApplications, useCreateLoanApplication, useUpdateLoanApplication, useDeleteLoanApplication } from './hooks/useLoanApplications';
@@ -232,7 +232,7 @@ const LoanApplications = () => {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow">
-          <Table 
+          <DataTable 
             data={applications} 
             columns={columns}
           />

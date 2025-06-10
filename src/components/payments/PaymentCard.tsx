@@ -91,12 +91,6 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({
     });
   };
 
-  const getPaymentProgress = () => {
-    const totalDue = payment.total_due;
-    const paid = payment.payment_status === 'paid' ? totalDue : 0;
-    return (paid / totalDue) * 100;
-  };
-
   const statusConfig = getStatusConfig();
 
   return (

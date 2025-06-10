@@ -10,7 +10,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
 import { usePaymentSchedules } from '../hooks/usePayments';
 import { PaymentCard } from '../components/payments/PaymentCard';
@@ -59,7 +58,7 @@ export const PaymentKanban: React.FC = () => {
   const dueTodayAmount = dueToday.reduce((sum, p) => sum + p.total_due, 0);
   const paidTodayAmount = paid.filter(p => {
     const today = new Date().toISOString().split('T')[0];
-    return p.payment_date && p.payment_date.split('T')[0] === today;
+    return p.due_date && p.due_date.split('T')[0] === today;
   }).reduce((sum, p) => sum + p.total_due, 0);
   
   const totalPortfolio = allPayments.reduce((sum, p) => sum + p.total_due, 0);
